@@ -1,0 +1,97 @@
+.task_form
+  = form_for @task do |f|
+    .modal-dialog.modal-lg
+      .modal-content
+        .modal-header
+          %button.close{"aria-hidden" => "true", "data-dismiss" => "modal", type: "button"} ×
+          %h3#myModalLabel.modal-title.project_header_text Add Task
+        .modal-body
+          .control-group
+            = f.label(:title, :class => "control-label ")
+            .controls
+              = f.text_field :title, :placeholder => "Title"
+          .control-group
+            = f.label(:created_by, :class => "control-label")
+            .controls.left-inner-addon 
+              = f.text_field :task_created_by, :value => "#{current_user.first_name}", :readonly => true
+          .control-group
+            = f.label(:all_project, :class => "control-label")
+            .controls
+              = f.select :project_id, options_for_select(Project.all.collect{|p| [p.project_title, p.id]}), :prompt => "please select project"
+              = hidden_field_tag :project_id, :value => params[:project_id]
+          .control-group
+            = f.label(:task_details, :class => "control-label")
+            .controls
+              = f.text_area :task_details, :rows => 5, :id => "pro_details", :placeholder => "Task Description"
+          .control-group
+            = f.label(:starts_on, :class => "control-label")
+            .controls
+              = f.text_field :starts_on, format: :long, :placeholder => "YYYY-MM-DD"
+              %td#startDate 2012-02-06
+              / #alert.alert.alert-error{style: "display: block;"}
+          .control-group
+            = f.label(:ends_on, :class => "control-label")
+            .controls
+              = f.text_field :ends_on, format: :long, :placeholder => "YYYY-MM-DD"
+              %td#endDate 2012-02-25
+              / #alert.alert.alert-error{style: "display: block;"}
+              
+          .control-group
+            = f.label(:status, :class => "control-label")
+            .controls.bootstrap-switch.bootstrap-switch-id-animated-switch.bootstrap-switch-on.bootstrap-switch-animate
+              %div
+                %input#animated-switch{checked: "checked", "data-animated" => "true", type: "checkbox"}   
+                =# f.hidden_field :status
+                =# f.check_box :status, collection: %w[A B]
+                // %span.bootstrap-switch-handle-on.bootstrap-switch-primary ON
+                // %label{for: "animated-switch"} 
+                // %span.bootstrap-switch-handle-off.bootstrap-switch-default OFF
+        .modal-footer{:style => "text-align:center"}
+          %button.btn.btn-default{"data-dismiss" => "modal", type: "button"} Close
+          = f.submit "Add Task", :class => "btn btn-primary save_project"
+
+:javascript
+  $(document).ready(function(){
+    $(".save_project").on('click',function(){
+      if($(".bootstrap-switch-on").length >1){
+        $("#project_status").attr("value","Pending")
+      }else{
+        $("#project_status").attr("value","Completed")
+      }
+    })
+
+    var startDate = new Date(2012,1,20);
+    var endDate = new Date(2012,1,25);
+    $('#project_project_starts_on').datepicker({format: 'yyyy-mm-dd'})
+      .on('changeDate', function(ev){
+        if (ev.date.valueOf() > endDate.valueOf()){
+          $('#alert').show().find('strong').text('The start date can not be greater then the end date');
+        } else {
+          $('#alert').hide();
+          startDate = new Date(ev.date);
+          $('#startDate').text($('#project_project_starts_on').data('date'));
+        }
+        $('#project_project_starts_on').datepicker('hide').val();
+      });
+    $('#project_project_ends_on').datepicker({format: 'yyyy-mm-dd'})
+      .on('changeDate', function(ev){
+        if (ev.date.valueOf() < startDate.valueOf()){
+          $('#alert').show().find('strong').text('The end date can not be less then the start date');
+        } else {
+          $('#alert').hide();
+          endDate = new Date(ev.date);
+          $('#endDate').text($('#project_project_ends_on').data('date'));
+        }
+        $('#project_project_ends_on').datepicker('hide').val();
+      });
+    // Bootstrap switch button //
+    $('#animated-switch').bootstrapSwitch('animate', true);
+  });
+
+  $(function(){
+    $("#project_invite_people").multiselect({
+      show: ["bounce", 200],
+      hide: ["explode", 1000]
+    });
+  });
+  
